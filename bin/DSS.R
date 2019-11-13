@@ -58,6 +58,32 @@ index = which(DMS$fdr <= fdr_cutoff)
 write.table(DMS[index,],file="output.LYMP.DMR.tsv",row.names=F,quote=F,sep="\t")
 
 # Manhattan plot and qqplot
-
-
+ManhattanmyDMP<-function(myDMP){
+  library("qqman")
+  library("Haplin")
+  
+  colnames(myDMP)[match("chr",colnames(myDMP))]<-"CHR"
+  colnames(myDMP)[match("pos",colnames(myDMP))]<-"MAPINFO"
+  colnames(myDMP)[match("pval",colnames(myDMP))]<-"P.Value"
+     
+  SNP=rownames(myDMP)
+  CHR=gsub("chr","",myDMP$CHR)
+   
+  if(length(grep("X",CHR))>0){
+    CHR<-sapply(CHR,function(x) gsub(pattern = "X",replacement = "23",x))
+    CHR<-sapply(CHR,function(x) gsub(pattern = "Y",replacement = "24",x))
+  }
+  CHR<-as.numeric(CHR)
+  BP=myDMP$MAPINFO
+  P=myDMP$P.Value
+  manhattaninput=data.frame(SNP,CHR,BP,P)
+  max<-max(2-log(manhattaninput$P,10))
+  genomewideline=log(0.05/nrow(na.omit(manhattaninput)),10)
+  pdf("manhattan.pdf")
+  manhattan(na.omit(manhattaninput),col = c("blue4", "orange3"),ylim = c(0,7),lwd=2, suggestiveline=F,genomewideline=F)
+  dev.off()
+  pdf("qqplot.pdf")
+  pQQ(P, nlabs =length(P), conf = 0.95)
+  dev.off()
+}
 
