@@ -3,11 +3,12 @@
 # cov2bedgraph
 # cov2bw
 
-## checking alignment status 
-cd /gpfs/home/guosa/hpc/methylation/PRJNA577192
+###################################################################################################
+## Tissue-of-orign
+# cov2bedgraph
+# cov2bw
 
 ## alignment with bismarker were conducted in GPFS disk not bigdata (bigdata is slow for IO)
-
 cd /gpfs/home/guosa/hpc/methylation/PRJNA577192
 cp /gpfs/home/guosa/PRJNA577192/methyfreq/*.cov.gz ./
 cp /gpfs/home/guosa/PRJNA577192/methyfreq/*.bedGraph.gz ./
@@ -32,19 +33,30 @@ wget https://raw.githubusercontent.com/Shicheng-Guo/PancreaticCancer/master/data
 perl tab2matrix.pl BUR > BUR.matrix.txt
 perl tab2matrix.pl CPGI > CPGISF.matrix.txt
 
+## Here, move to BIRC10 since HPC do not have gplots package
 cd ~/hpc/methylation/PRJNA577192/COV
-library("gplots")
+setwd("~/hpc/methylation/PRJNA577192/COV")
 
-for(i in 1:8){
+library("gplots")
+for(i in 5:40){
 data<-read.table("CPGISF.matrix.txt",head=T)
+id1<-unlist(lapply(strsplit(colnames(data),".S2019"),function(x) x[1]))
+id2<-unlist(lapply(strsplit(colnames(data),"[.]"),function(x) x[3]))
+id3<-unlist(lapply(strsplit(colnames(data),"[.]"),function(x) x[4]))
+colnames(data)=paste(id1,id2,id3,sep="-")
+data<-data[-which(unlist(apply(data,1,function(x) sum(is.na(x))))>i),]
+png(paste("heatmap.cpgisland",i,"png",sep="."))
+heatmap.2(data.matrix(data), main = "Tissue-Of-Origin", trace ="none", na.color="gray", margins = c(6,2), cexRow = 0.4)
+dev.off()
+}
+
+for(i in 5:40){
+data<-read.table("BUR.matrix.txt",head=T)
 id1<-unlist(lapply(strsplit(colnames(data),".S2019"),function(x) x[1]))
 id2<-unlist(lapply(strsplit(colnames(data),"[.]"),function(x) x[4]))
 colnames(data)=paste(id1,id2,sep="-")
 data<-data[-which(unlist(apply(data,1,function(x) sum(is.na(x))))>i),]
-png(paste("heatmap",i,"png",sep="."))
-heatmap.2(data.matrix(data), main = "Secretome Profile", trace ="none", na.color="gray", margins = c(5,15), cexRow = 0.7)
+png(paste("heatmap.bur",i,"png",sep="."))
+heatmap.2(data.matrix(data), main = "Tissue-Of-Origin-TOO-Profile", trace ="none", na.color="gray", margins = c(5,15), cexRow = 0.7)
 dev.off()
 }
-
-
-
